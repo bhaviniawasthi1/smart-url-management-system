@@ -1,0 +1,93 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: smart-url-management-system
+
+  # Default profile uses H2 for easy development
+  # Switch to 'mysql' profile for production-like setup
+  profiles:
+    active: dev
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+
+# JWT Configuration
+app:
+  jwt:
+    secret: c2VjdXJlLWtleS1mb3Itc21hcnQtdXJsLW1hbmFnZW1lbnQtc3lzdGVtLXNwcmluZy1ib290LWludGVybnNoaXAtcHJvamVjdA==
+    expiration-ms: 86400000  # 24 hours
+    issuer: smart-url-management-system
+
+  # URL Shortening Configuration
+  url:
+    short-url-domain: http://localhost:8080
+    default-expiration-days: 365  # URLs expire after 1 year by default
+    max-custom-alias-length: 30
+    min-custom-alias-length: 4
+
+  # Reserved keywords that cannot be used as custom aliases
+  reserved-aliases:
+    - admin
+    - login
+    - register
+    - api
+    - dashboard
+    - auth
+    - swagger
+    - docs
+    - logout
+    - signup
+    - signin
+    - settings
+    - profile
+    - home
+    - index
+    - url
+    - links
+    - redirect
+    - short
+    - manage
+    - analytics
+    - audit
+
+# Rate Limiting
+rate-limit:
+  enabled: true
+  default-max-requests: 60       # max requests per window
+  default-window-seconds: 60     # time window in seconds
+  url-create-max-requests: 10    # stricter limit for URL creation
+  url-create-window-seconds: 60
+
+# Springdoc / Swagger UI
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+  show-actuator: false
+
+# Logging
+logging:
+  level:
+    com.smarturl: DEBUG
+    org.springframework.security: INFO
+    org.hibernate.SQL: WARN

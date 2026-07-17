@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<!--
+    Thymeleaf fragments for reusability across pages.
+    Usage: th:replace="~{fragments :: head(title)}"
+-->
+
+<!-- Shared head fragment -->
+<th:block th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title} + ' | Smart URL Manager'">Smart URL Manager</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</th:block>
+
+<!-- Navigation bar — adapts based on auth state -->
+<th:block th:fragment="navbar">
+    <nav>
+        <a href="/" class="brand">🔗 Smart URL Manager</a>
+        <div class="nav-links">
+            <!-- Shown when NOT logged in -->
+            <th:block th:if="${#strings.isEmpty(currentUser)}">
+                <a href="/login">Login</a>
+                <a href="/register">Register</a>
+            </th:block>
+            <!-- Shown when logged in -->
+            <th:block th:unless="${#strings.isEmpty(currentUser)}">
+                <a href="/dashboard">My Dashboard</a>
+                <a href="/urls">My URLs</a>
+                <a href="/urls/create">Create URL</a>
+                <th:block th:if="${isAdmin}">
+                    <a href="/admin">Admin Panel</a>
+                </th:block>
+                <a href="/logout">Logout (<span th:text="${currentUser}">user</span>)</a>
+            </th:block>
+            <a href="/swagger-ui.html" target="_blank" title="API Docs">📖 API</a>
+        </div>
+    </nav>
+</th:block>
+
+<!-- Footer -->
+<th:block th:fragment="footer">
+    <div class="text-center text-muted mt-2" style="padding: 1rem 0;">
+        Smart URL Management System — College Internship Project
+    </div>
+</th:block>
+
+<!-- Flash message display -->
+<th:block th:fragment="alerts">
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div>
+</th:block>
+
+</body>
+</html>

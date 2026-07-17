@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments :: head(title='Home')}"></th:block>
+</head>
+<body>
+
+<div th:replace="~{fragments :: navbar}"></div>
+
+<div class="container">
+    <div th:replace="~{fragments :: alerts}"></div>
+
+    <!-- Hero section for guest users -->
+    <th:block th:if="${#strings.isEmpty(currentUser)}">
+        <div class="card text-center" style="padding: 3rem 1.5rem;">
+            <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">🔗 Smart URL Manager</h1>
+            <p style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 2rem;">
+                Create, manage, and track shortened URLs with powerful analytics.
+            </p>
+            <div>
+                <a href="/register" class="btn btn-primary" style="margin-right: 0.5rem;">Get Started</a>
+                <a href="/login" class="btn btn-outline">Login</a>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" th:text="${platformStats != null ? platformStats.totalUrls : '—'}">—</div>
+                <div class="stat-label">URLs Shortened</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" th:text="${platformStats != null ? platformStats.totalClicks : '—'}">—</div>
+                <div class="stat-label">Total Redirects</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" th:text="${platformStats != null ? platformStats.totalUsers : '—'}">—</div>
+                <div class="stat-label">Registered Users</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Features</h2>
+            <table>
+                <tr><td>🚀</td><td><strong>URL Shortening</strong></td><td>Convert long URLs into short, shareable links using Base62 encoding</td></tr>
+                <tr><td>✏️</td><td><strong>Custom Aliases</strong></td><td>Create your own memorable short URLs</td></tr>
+                <tr><td>🔒</td><td><strong>Password Protection</strong></td><td>Secure sensitive links behind a password</td></tr>
+                <tr><td>⏰</td><td><strong>Link Expiration</strong></td><td>Set expiry dates for time-sensitive links</td></tr>
+                <tr><td>📊</td><td><strong>Click Analytics</strong></td><td>Track clicks, referrers, and user agents per URL</td></tr>
+                <tr><td>🛡️</td><td><strong>Admin Controls</strong></td><td>Monitor platform activity and manage users</td></tr>
+            </table>
+        </div>
+    </th:block>
+
+    <!-- Dashboard for logged-in users -->
+    <th:block th:unless="${#strings.isEmpty(currentUser)}">
+        <h1 style="margin-bottom: 1rem;">Welcome, <span th:text="${currentUser}">User</span>!</h1>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" th:text="${userStats != null ? userStats.totalUrls : 0}">0</div>
+                <div class="stat-label">My URLs</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" th:text="${userStats != null ? userStats.totalClicks : 0}">0</div>
+                <div class="stat-label">Total Clicks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" th:text="${userStats != null ? userStats.activeUrls : 0}">0</div>
+                <div class="stat-label">Active Links</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" th:text="${userStats != null ? userStats.expiredUrls : 0}">0</div>
+                <div class="stat-label">Expired Links</div>
+            </div>
+        </div>
+
+        <div class="card flex-between">
+            <span>Ready to create a new short URL?</span>
+            <a href="/urls/create" class="btn btn-primary">Create Short URL</a>
+        </div>
+    </th:block>
+</div>
+
+<div th:replace="~{fragments :: footer}"></div>
+
+</body>
+</html>
