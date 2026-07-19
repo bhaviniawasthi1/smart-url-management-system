@@ -18,29 +18,33 @@
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </th:block>
 
-<!-- Navigation bar — adapts based on auth state -->
+<!-- Navigation bar — adapts based on auth state (client-side) -->
 <th:block th:fragment="navbar">
     <nav>
         <a href="/" class="brand">🔗 Smart URL Manager</a>
         <div class="nav-links">
-            <!-- Shown when NOT logged in -->
-            <th:block th:if="${#strings.isEmpty(currentUser)}">
+            <!-- Guest links (shown when NOT logged in) -->
+            <span id="guest-links">
                 <a href="/login">Login</a>
                 <a href="/register">Register</a>
-            </th:block>
-            <!-- Shown when logged in -->
-            <th:block th:unless="${#strings.isEmpty(currentUser)}">
+            </span>
+            <!-- User links (shown when logged in) -->
+            <span id="user-links" style="display:none;">
                 <a href="/dashboard">My Dashboard</a>
                 <a href="/urls">My URLs</a>
                 <a href="/urls/create">Create URL</a>
-                <th:block th:if="${isAdmin}">
-                    <a href="/admin">Admin Panel</a>
-                </th:block>
-                <a href="/logout">Logout (<span th:text="${currentUser}">user</span>)</a>
-            </th:block>
+                <a href="#" onclick="event.preventDefault(); localStorage.removeItem('token'); window.location.href='/';">Logout</a>
+            </span>
             <a href="/swagger-ui.html" target="_blank" title="API Docs">📖 API</a>
         </div>
     </nav>
+    <script>
+        var params = new URLSearchParams(window.location.search);
+        if (localStorage.getItem('token') && params.get('view') !== 'guest') {
+            document.getElementById('guest-links').style.display = 'none';
+            document.getElementById('user-links').style.display = 'inline';
+        }
+    </script>
 </th:block>
 
 <!-- Footer -->

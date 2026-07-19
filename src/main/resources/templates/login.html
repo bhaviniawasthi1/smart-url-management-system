@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments :: head(title='Login')}"></th:block>
+</head>
+<body>
+
+<div th:replace="~{fragments :: navbar}"></div>
+
+<div class="container">
+    <div th:replace="~{fragments :: alerts}"></div>
+
+    <a href="javascript:history.back()" class="btn btn-outline btn-sm mb-1">&larr; Back</a>
+
+    <div class="card" style="max-width: 480px; margin: 2rem auto;">
+        <h2 style="margin-bottom: 1.5rem;">Login</h2>
+
+        <form>
+            <div class="form-group">
+                <label for="usernameOrEmail">Username or Email</label>
+                <input type="text" id="usernameOrEmail" class="form-control"
+                       placeholder="Enter your username or email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" class="form-control"
+                       placeholder="Enter your password" required>
+            </div>
+
+            <div id="login-error" class="alert alert-error" style="display: none;"></div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+        </form>
+
+        <p class="text-center text-muted mt-2">
+            Don't have an account? <a href="/register">Register here</a>
+        </p>
+    </div>
+</div>
+
+<div th:replace="~{fragments :: footer}"></div>
+
+<script>
+    document.querySelector('form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const errorDiv = document.getElementById('login-error');
+        errorDiv.style.display = 'none';
+        try {
+            const res = await fetch('/api/v1/auth/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    usernameOrEmail: document.getElementById('usernameOrEmail').value,
+                    password: document.getElementById('password').value
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                localStorage.setItem('token', data.data.token);
+                window.location.href = '/dashboard';
+            } else {
+                errorDiv.textContent = data.message || 'Login failed. Please try again.';
+                errorDiv.style.display = 'block';
+            }
+        } catch (err) {
+            errorDiv.textContent = 'Login failed. Please try again.';
+            errorDiv.style.display = 'block';
+        }
+    });
+</script>
+
+</body>
+</html>

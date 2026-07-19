@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments :: head(title='Dashboard')}"></th:block>
+</head>
+<body>
+
+<div th:replace="~{fragments :: navbar}"></div>
+
+<div class="container">
+    <div th:replace="~{fragments :: alerts}"></div>
+
+    <a href="javascript:history.back()" class="btn btn-outline btn-sm mb-1">&larr; Back</a>
+
+    <h1 style="margin-bottom: 1rem;">Dashboard</h1>
+    <p class="text-muted">Your URL activity at a glance.</p>
+
+    <div id="stats-grid" class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value" id="totalUrls">—</div>
+            <div class="stat-label">Total URLs</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="activeUrls">—</div>
+            <div class="stat-label">Active Links</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="expiredUrls">—</div>
+            <div class="stat-label">Expired Links</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="totalClicks">—</div>
+            <div class="stat-label">Total Clicks</div>
+        </div>
+    </div>
+
+    <div class="card flex-between">
+        <span>Ready to create a new short URL?</span>
+        <a href="/urls/create" class="btn btn-primary">Create Short URL</a>
+    </div>
+</div>
+
+<div th:replace="~{fragments :: footer}"></div>
+
+<script>
+    async function loadDashboard() {
+        const token = localStorage.getItem('token');
+        if (!token) { window.location.href = '/login'; return; }
+        try {
+            const res = await fetch('/api/v1/analytics/summary', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('totalUrls').textContent = data.data.totalUrls;
+                document.getElementById('activeUrls').textContent = data.data.activeUrls;
+                document.getElementById('expiredUrls').textContent = data.data.expiredUrls;
+                document.getElementById('totalClicks').textContent = data.data.totalClicks;
+            }
+        } catch (err) { console.error('Dashboard load failed', err); }
+    }
+    loadDashboard();
+</script>
+
+</body>
+</html>

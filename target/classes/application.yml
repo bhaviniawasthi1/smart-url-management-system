@@ -31,8 +31,8 @@ spring:
 # JWT Configuration
 app:
   jwt:
-    secret: c2VjdXJlLWtleS1mb3Itc21hcnQtdXJsLW1hbmFnZW1lbnQtc3lzdGVtLXNwcmluZy1ib290LWludGVybnNoaXAtcHJvamVjdA==
-    expiration-ms: 86400000  # 24 hours
+    secret: ${JWT_SECRET:c2VjdXJlLWtleS1mb3Itc21hcnQtdXJsLW1hbmFnZW1lbnQtc3lzdGVtLXNwcmluZy1ib290LWludGVybnNoaXAtcHJvamVjdA==}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}  # 24 hours
     issuer: smart-url-management-system
 
   # URL Shortening Configuration

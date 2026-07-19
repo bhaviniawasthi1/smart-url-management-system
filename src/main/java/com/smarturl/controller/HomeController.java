@@ -1,5 +1,7 @@
 package com.smarturl.controller;
 
+import com.smarturl.dto.PlatformStatsResponse;
+import com.smarturl.service.AdminService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,10 +14,21 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class HomeController {
 
+    private final AdminService adminService;
+
+    public HomeController(AdminService adminService) {
+        this.adminService = adminService;
+    }
+
     @GetMapping("/")
     public String home(Model model) {
         model.addAttribute("title", "Home");
-        // currentUser and stats will be populated once auth & services are built
+        try {
+            PlatformStatsResponse stats = adminService.getPlatformStats();
+            model.addAttribute("platformStats", stats);
+        } catch (Exception e) {
+            model.addAttribute("platformStats", null);
+        }
         return "index";
     }
 

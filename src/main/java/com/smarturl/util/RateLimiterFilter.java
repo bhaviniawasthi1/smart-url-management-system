@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -20,16 +21,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * When a client exceeds the limit, subsequent requests receive
  * HTTP 429 (Too Many Requests) until the window resets.
  *
+ * A scheduled cleanup task evicts stale entries to prevent memory leaks.
+ *
  * Viva Tip: This is a token-bucket-like rate limiter without
  * external dependencies. The ConcurrentHashMap is thread-safe
  * (important — multiple requests hit this concurrently).
- * Each IP gets its own window counter. When the window expires,
- * the old entry is replaced with a fresh one.
- *
- * Cleanup: Old entries without a request in the current window
- * are not actively pruned — the map stays small because only
- * actively-requesting IPs have entries. In a production system
- * with millions of IPs, you'd add a scheduled cleanup task.
  */
 @Component
 public class RateLimiterFilter implements Filter {
@@ -42,7 +38,6 @@ public class RateLimiterFilter implements Filter {
     private final int urlCreateMaxRequests;
     private final int urlCreateWindowSeconds;
 
-    // Map: IP address -> RateLimitWindow
     private final Map<String, RateLimitWindow> requestCounts = new ConcurrentHashMap<>();
 
     public RateLimiterFilter(
@@ -72,26 +67,22 @@ public class RateLimiterFilter implements Filter {
         String clientIp = getClientIp(httpRequest);
         String path = httpRequest.getRequestURI();
 
-        // Choose limit based on endpoint
-        int maxRequests = path.contains("/api/v1/urls/create")
-                || path.contains("/api/v1/urls")
-                ? urlCreateMaxRequests : defaultMaxRequests;
-        int windowSeconds = path.contains("/api/v1/urls/create")
-                || path.contains("/api/v1/urls")
-                ? urlCreateWindowSeconds : defaultWindowSeconds;
+        boolean isUrlCreate = path.contains("/api/v1/urls");
+        int maxRequests = isUrlCreate ? urlCreateMaxRequests : defaultMaxRequests;
+        int windowSeconds = isUrlCreate ? urlCreateWindowSeconds : defaultWindowSeconds;
 
         String key = clientIp + ":" + path;
         long nowSeconds = Instant.now().getEpochSecond();
-        long windowStart = nowSeconds / windowSeconds * windowSeconds; // floor to window boundary
+        long windowStart = nowSeconds / windowSeconds * windowSeconds;
 
         RateLimitWindow window = requestCounts.get(key);
 
         if (window == null || window.windowStart != windowStart) {
-            // New window — start fresh
-            window = new RateLimitWindow(windowStart, 1);
+            window = new RateLimitWindow(windowStart, 1, nowSeconds);
             requestCounts.put(key, window);
         } else {
             window.count++;
+            window.lastAccess = nowSeconds;
         }
 
         if (window.count > maxRequests) {
@@ -108,6 +99,22 @@ public class RateLimiterFilter implements Filter {
         chain.doFilter(request, response);
     }
 
+    /**
+     * Periodically evict entries that haven't been accessed for more than
+     * twice the default window. This prevents unbounded map growth.
+     */
+    @Scheduled(fixedRateString = "${rate-limit.default-window-seconds:60}000")
+    public void cleanupStaleEntries() {
+        long now = Instant.now().getEpochSecond();
+        long maxAge = 2L * Math.max(defaultWindowSeconds, urlCreateWindowSeconds);
+        int before = requestCounts.size();
+        requestCounts.values().removeIf(w -> (now - w.lastAccess) > maxAge);
+        int after = requestCounts.size();
+        if (before != after) {
+            log.debug("Rate limiter cleanup: removed {} stale entries ({} remaining)", before - after, after);
+        }
+    }
+
     private String getClientIp(HttpServletRequest request) {
         String xfHeader = request.getHeader("X-Forwarded-For");
         if (xfHeader != null && !xfHeader.isBlank()) {
@@ -116,14 +123,15 @@ public class RateLimiterFilter implements Filter {
         return request.getRemoteAddr();
     }
 
-    // Internal class — one window per IP+path combination
     private static class RateLimitWindow {
         final long windowStart;
         int count;
+        long lastAccess;
 
-        RateLimitWindow(long windowStart, int count) {
+        RateLimitWindow(long windowStart, int count, long lastAccess) {
             this.windowStart = windowStart;
             this.count = count;
+            this.lastAccess = lastAccess;
         }
     }
 }

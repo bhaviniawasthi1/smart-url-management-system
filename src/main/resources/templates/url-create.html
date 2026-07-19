@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments :: head(title='Create URL')}"></th:block>
+</head>
+<body>
+
+<div th:replace="~{fragments :: navbar}"></div>
+
+<div class="container">
+    <div th:replace="~{fragments :: alerts}"></div>
+
+    <a href="javascript:history.back()" class="btn btn-outline btn-sm mb-1">&larr; Back</a>
+
+    <div class="card" style="max-width: 640px; margin: 2rem auto;">
+        <h2 style="margin-bottom: 1.5rem;">Create Short URL</h2>
+
+        <form id="createForm">
+            <div class="form-group">
+                <label for="url">Destination URL</label>
+                <input type="url" id="url" class="form-control"
+                       placeholder="https://example.com/very/long/url" required>
+                <div id="url-error" class="alert alert-error" style="display: none;"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password Protection (optional)</label>
+                <input type="password" id="password" class="form-control"
+                       placeholder="Leave blank for no password">
+                <small class="text-muted">If set, visitors must enter this password to access the URL.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="expiresIn">Link Expiry (optional)</label>
+                <select id="expiresIn" class="form-control">
+                    <option value="">No expiry</option>
+                    <option value="1h">1 Hour</option>
+                    <option value="24h">24 Hours</option>
+                    <option value="7d">7 Days</option>
+                    <option value="30d">30 Days</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Create Short URL</button>
+        </form>
+
+        <div id="result" style="display: none; margin-top: 1.5rem;" class="card">
+            <p><strong>Short URL:</strong></p>
+            <div class="flex-between">
+                <a id="shortUrl" href="#" target="_blank"></a>
+                <button id="copyBtn" class="btn btn-sm btn-outline">Copy</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments :: footer}"></div>
+
+<script>
+    document.getElementById('createForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const token = localStorage.getItem('token');
+        if (!token) { window.location.href = '/login'; return; }
+
+        const urlInput = document.getElementById('url');
+        const urlError = document.getElementById('url-error');
+        urlError.style.display = 'none';
+
+        const url = urlInput.value.trim();
+        if (!url.startsWith('https://') && !url.startsWith('http://')) {
+            urlError.textContent = 'URL must start with https://';
+            urlError.style.display = 'block';
+            return;
+        }
+
+        const body = { url: url };
+        const password = document.getElementById('password').value;
+        const expiresIn = document.getElementById('expiresIn').value;
+        if (password) body.password = password;
+        if (expiresIn) body.expiresIn = expiresIn;
+
+        try {
+            const res = await fetch('/api/v1/urls', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify(body)
+            });
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('shortUrl').href = data.data.shortUrl;
+                document.getElementById('shortUrl').textContent = data.data.shortUrl;
+                document.getElementById('result').style.display = 'block';
+                document.getElementById('createForm').reset();
+            } else {
+                urlError.textContent = data.message || 'Failed to create URL';
+                urlError.style.display = 'block';
+            }
+        } catch (err) {
+            urlError.textContent = 'Failed to create URL. Please try again.';
+            urlError.style.display = 'block';
+        }
+    });
+
+    document.getElementById('copyBtn').addEventListener('click', function() {
+        navigator.clipboard.writeText(document.getElementById('shortUrl').href);
+        this.textContent = 'Copied!';
+        setTimeout(() => this.textContent = 'Copy', 2000);
+    });
+</script>
+
+</body>
+</html>

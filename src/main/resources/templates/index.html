@@ -10,8 +10,8 @@
 <div class="container">
     <div th:replace="~{fragments :: alerts}"></div>
 
-    <!-- Hero section for guest users -->
-    <th:block th:if="${#strings.isEmpty(currentUser)}">
+    <!-- Guest section (shown when NOT logged in) -->
+    <div id="guest-section">
         <div class="card text-center" style="padding: 3rem 1.5rem;">
             <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">🔗 Smart URL Manager</h1>
             <p style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 2rem;">
@@ -49,39 +49,51 @@
                 <tr><td>🛡️</td><td><strong>Admin Controls</strong></td><td>Monitor platform activity and manage users</td></tr>
             </table>
         </div>
-    </th:block>
+    </div>
 
-    <!-- Dashboard for logged-in users -->
-    <th:block th:unless="${#strings.isEmpty(currentUser)}">
-        <h1 style="margin-bottom: 1rem;">Welcome, <span th:text="${currentUser}">User</span>!</h1>
+    <!-- Logged-in section (shown when authenticated) -->
+    <div id="user-section" style="display: none;">
+        <div class="card text-center" style="padding: 3rem 1.5rem;">
+            <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">🔗 Smart URL Manager</h1>
+            <p style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 2rem;">
+                You are logged in. Head to your dashboard to manage your URLs.
+            </p>
+            <a href="/dashboard" class="btn btn-primary">Go to Dashboard</a>
+        </div>
 
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-value" th:text="${userStats != null ? userStats.totalUrls : 0}">0</div>
-                <div class="stat-label">My URLs</div>
+                <div class="stat-value" th:text="${platformStats != null ? platformStats.totalUrls : '—'}">—</div>
+                <div class="stat-label">URLs Shortened</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" th:text="${userStats != null ? userStats.totalClicks : 0}">0</div>
-                <div class="stat-label">Total Clicks</div>
+                <div class="stat-value" th:text="${platformStats != null ? platformStats.totalClicks : '—'}">—</div>
+                <div class="stat-label">Total Redirects</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" th:text="${userStats != null ? userStats.activeUrls : 0}">0</div>
-                <div class="stat-label">Active Links</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" th:text="${userStats != null ? userStats.expiredUrls : 0}">0</div>
-                <div class="stat-label">Expired Links</div>
+                <div class="stat-value" th:text="${platformStats != null ? platformStats.totalUsers : '—'}">—</div>
+                <div class="stat-label">Registered Users</div>
             </div>
         </div>
-
-        <div class="card flex-between">
-            <span>Ready to create a new short URL?</span>
-            <a href="/urls/create" class="btn btn-primary">Create Short URL</a>
-        </div>
-    </th:block>
+    </div>
 </div>
 
 <div th:replace="~{fragments :: footer}"></div>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('error') && !document.querySelector('.alert-error')) {
+        const div = document.createElement('div');
+        div.className = 'alert alert-error';
+        div.textContent = params.get('error');
+        document.querySelector('.container')?.prepend(div);
+    }
+
+    if (localStorage.getItem('token') && params.get('view') !== 'guest') {
+        document.getElementById('guest-section').style.display = 'none';
+        document.getElementById('user-section').style.display = 'block';
+    }
+</script>
 
 </body>
 </html>

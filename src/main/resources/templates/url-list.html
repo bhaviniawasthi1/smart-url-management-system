@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments :: head(title='My URLs')}"></th:block>
+</head>
+<body>
+
+<div th:replace="~{fragments :: navbar}"></div>
+
+<div class="container">
+    <div th:replace="~{fragments :: alerts}"></div>
+
+    <a href="javascript:history.back()" class="btn btn-outline btn-sm mb-1">&larr; Back</a>
+
+    <div class="flex-between">
+        <h1 style="margin-bottom: 1rem;">My URLs</h1>
+        <a href="/urls/create" class="btn btn-primary">+ Create URL</a>
+    </div>
+
+    <div id="url-list">
+        <p class="text-muted">Loading your URLs...</p>
+    </div>
+
+    <div id="analytics-modal" style="display:none;"></div>
+</div>
+
+<div th:replace="~{fragments :: footer}"></div>
+
+<script>
+    let urlsData = [];
+
+    async function loadUrls() {
+        const token = localStorage.getItem('token');
+        if (!token) { window.location.href = '/login'; return; }
+        try {
+            const res = await fetch('/api/v1/urls', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await res.json();
+            urlsData = data.data || [];
+            renderTable();
+        } catch (err) {
+            document.getElementById('url-list').innerHTML = '<div class="alert alert-error">Failed to load URLs.</div>';
+        }
+    }
+
+    function renderTable() {
+        const container = document.getElementById('url-list');
+        if (!urlsData.length) {
+            container.innerHTML = '<div class="card"><p class="text-muted">No URLs yet. <a href="/urls/create">Create your first one!</a></p></div>';
+            return;
+        }
+        let html = '<table><thead><tr><th>Short URL</th><th>Long URL</th><th>Clicks</th><th>Created</th><th>Expiry</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
+        urlsData.forEach(u => {
+            const status = u.expired ? 'Expired' : (u.enabled ? 'Active' : 'Disabled');
+            const date = new Date(u.createdAt).toLocaleDateString();
+            const expiry = u.expiresAt ? new Date(u.expiresAt).toLocaleDateString() : 'No expiry';
+            const badgeClass = u.expired ? 'error' : (u.enabled ? 'success' : 'error');
+            html += `<tr>
+                <td><a href="${u.shortUrl}" target="_blank">${u.shortCode}</a></td>
+                <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${u.longUrl}">${u.longUrl}</td>
+                <td>${u.clickCount}</td>
+                <td>${date}</td>
+                <td>${expiry}</td>
+                <td><span class="badge badge-${badgeClass}">${status}</span></td>
+                <td>
+                    <button class="btn btn-sm btn-outline" onclick="copyUrl('${u.shortUrl}')" title="Copy short URL">📋</button>
+                    <button class="btn btn-sm btn-outline" onclick="viewAnalytics(${u.id})" title="View analytics">📊</button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteUrl(${u.id})" title="Delete URL">🗑️</button>
+                </td>
+            </tr>`;
+        });
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    }
+
+    function copyUrl(shortUrl) {
+        navigator.clipboard.writeText(shortUrl);
+    }
+
+    async function viewAnalytics(id) {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        try {
+            const res = await fetch('/api/v1/analytics/urls/' + id, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await res.json();
+            const modal = document.getElementById('analytics-modal');
+            if (data.success) {
+                const a = data.data;
+                modal.style.display = 'block';
+                modal.innerHTML = '<div class="card"><div class="flex-between"><h3>Analytics: ' + a.shortCode + '</h3><button class="btn btn-sm btn-outline" onclick="document.getElementById(\'analytics-modal\').style.display=\'none\'">✕</button></div>' +
+                    '<div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">' +
+                    '<div class="stat-card"><div class="stat-value">' + a.totalClicks + '</div><div class="stat-label">Total</div></div>' +
+                    '<div class="stat-card"><div class="stat-value">' + a.clicksToday + '</div><div class="stat-label">Today</div></div>' +
+                    '<div class="stat-card"><div class="stat-value">' + a.clicksThisWeek + '</div><div class="stat-label">This Week</div></div>' +
+                    '<div class="stat-card"><div class="stat-value">' + a.clicksThisMonth + '</div><div class="stat-label">This Month</div></div>' +
+                    '</div>' +
+                    '<p style="margin-top:0.5rem;"><a href="' + a.longUrl + '" target="_blank">' + a.longUrl + '</a></p>' +
+                    '</div>';
+            } else {
+                alert(data.message || 'Failed to load analytics');
+            }
+        } catch (err) {
+            alert('Failed to load analytics');
+        }
+    }
+
+    async function deleteUrl(id) {
+        if (!confirm('Delete this URL permanently?')) return;
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        try {
+            const res = await fetch('/api/v1/urls/' + id, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await res.json();
+            if (data.success) {
+                urlsData = urlsData.filter(u => u.id !== id);
+                renderTable();
+            } else {
+                alert(data.message || 'Failed to delete URL');
+            }
+        } catch (err) {
+            alert('Failed to delete URL');
+        }
+    }
+
+    loadUrls();
+</script>
+
+</body>
+</html>

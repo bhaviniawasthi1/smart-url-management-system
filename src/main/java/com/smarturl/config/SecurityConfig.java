@@ -11,6 +11,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
 
 /**
  * Spring Security configuration — Phase 2: JWT authentication is active.
@@ -51,6 +52,15 @@ public class SecurityConfig {
                 // Disable CSRF — REST APIs are stateless with token-based auth
                 .csrf(csrf -> csrf.disable())
 
+                // Security headers
+                .headers(headers -> headers
+                        .addHeaderWriter(new StaticHeadersWriter("X-Content-Type-Options", "nosniff"))
+                        .addHeaderWriter(new StaticHeadersWriter("X-Frame-Options", "DENY"))
+                        .addHeaderWriter(new StaticHeadersWriter("X-XSS-Protection", "1; mode=block"))
+                        .addHeaderWriter(new StaticHeadersWriter("Cache-Control", "no-cache, no-store, max-age=0, must-revalidate"))
+                        .addHeaderWriter(new StaticHeadersWriter("Pragma", "no-cache"))
+                )
+
                 // Stateless sessions — every request carries its own JWT
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -60,6 +70,9 @@ public class SecurityConfig {
                         // === PUBLIC: Auth endpoints ===
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
+
+                        // === PUBLIC: Password verification (called before redirect) ===
+                        .requestMatchers(HttpMethod.POST, "/api/v1/urls/*/verify-password").permitAll()
 
                         // === PUBLIC: Swagger / API docs ===
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**",
@@ -75,6 +88,9 @@ public class SecurityConfig {
                         .requestMatchers("/", "/login", "/register", "/dashboard",
                                 "/admin/**", "/r/**", "/urls", "/urls/create",
                                 "/logout", "/error").permitAll()
+
+                        // === ADMIN: Admin API requires ADMIN role ===
+                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
 
                         // === PROTECTED: All other API endpoints require authentication ===
                         .requestMatchers("/api/**").authenticated()
