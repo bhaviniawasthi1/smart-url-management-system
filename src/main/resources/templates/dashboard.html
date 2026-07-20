@@ -10,12 +10,12 @@
 <div class="container">
     <div th:replace="~{fragments :: alerts}"></div>
 
-    <a href="javascript:history.back()" class="btn btn-outline btn-sm mb-1">&larr; Back</a>
+    <a href="javascript:history.back()" class="back-link">&larr; Back</a>
 
-    <h1 style="margin-bottom: 1rem;">Dashboard</h1>
-    <p class="text-muted">Your URL activity at a glance.</p>
+    <h1 style="margin-bottom: 0.5rem;">Dashboard</h1>
+    <p class="text-muted" style="margin-bottom: 1.5rem;">Your URL activity at a glance.</p>
 
-    <div id="stats-grid" class="stats-grid">
+    <div id="stats-grid" class="stats-grid fade-in">
         <div class="stat-card">
             <div class="stat-value" id="totalUrls">—</div>
             <div class="stat-label">Total URLs</div>

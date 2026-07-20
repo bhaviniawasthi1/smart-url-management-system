@@ -5,56 +5,59 @@
 </head>
 <body>
 
-<!--
-    Thymeleaf fragments for reusability across pages.
-    Usage: th:replace="~{fragments :: head(title)}"
--->
-
-<!-- Shared head fragment -->
 <th:block th:fragment="head(title)">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${title} + ' | Smart URL Manager'">Smart URL Manager</title>
+    <title th:text="${title} + ' | LynkForge'">LynkForge</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%236366f1'/%3E%3Cstop offset='100%25' stop-color='%2306b6d4'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Ctext x='16' y='22' font-size='18' font-family='Arial' font-weight='bold' fill='white' text-anchor='middle'%3ELF%3C/text%3E%3C/svg%3E">
 </th:block>
 
-<!-- Navigation bar — adapts based on auth state (client-side) -->
 <th:block th:fragment="navbar">
     <nav>
-        <a href="/" class="brand">🔗 Smart URL Manager</a>
+        <a href="/" class="brand">
+            <span class="brand-logo">⚡</span>
+            LynkForge
+        </a>
         <div class="nav-links">
-            <!-- Guest links (shown when NOT logged in) -->
             <span id="guest-links">
                 <a href="/login">Login</a>
                 <a href="/register">Register</a>
             </span>
-            <!-- User links (shown when logged in) -->
             <span id="user-links" style="display:none;">
-                <a href="/dashboard">My Dashboard</a>
+                <a href="/dashboard">Dashboard</a>
                 <a href="/urls">My URLs</a>
-                <a href="/urls/create">Create URL</a>
+                <a href="/urls/create">Create</a>
                 <a href="#" onclick="event.preventDefault(); localStorage.removeItem('token'); window.location.href='/';">Logout</a>
             </span>
-            <a href="/swagger-ui.html" target="_blank" title="API Docs">📖 API</a>
         </div>
     </nav>
     <script>
-        var params = new URLSearchParams(window.location.search);
-        if (localStorage.getItem('token') && params.get('view') !== 'guest') {
-            document.getElementById('guest-links').style.display = 'none';
-            document.getElementById('user-links').style.display = 'inline';
-        }
+        (function() {
+            var q = new URLSearchParams(window.location.search);
+            if (localStorage.getItem('token') && q.get('view') !== 'guest') {
+                var gl = document.getElementById('guest-links');
+                var ul = document.getElementById('user-links');
+                if (gl) gl.style.display = 'none';
+                if (ul) ul.style.display = 'inline';
+            }
+        })();
     </script>
 </th:block>
 
-<!-- Footer -->
 <th:block th:fragment="footer">
-    <div class="text-center text-muted mt-2" style="padding: 1rem 0;">
-        Smart URL Management System — College Internship Project
-    </div>
+    <footer>
+        <div class="footer-links">
+            <a href="/">Home</a>
+            <a href="/swagger-ui.html" target="_blank">API Docs</a>
+            <a href="https://www.linkedin.com/in/bhaviniawasthi/" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+        <div>
+            Built with <span class="footer-name">Bhavini Awasthi</span> &mdash; LynkForge &copy; <span th:text="${#dates.year(#dates.createNow())}">2026</span>
+        </div>
+    </footer>
 </th:block>
 
-<!-- Flash message display -->
 <th:block th:fragment="alerts">
     <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
     <div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div>

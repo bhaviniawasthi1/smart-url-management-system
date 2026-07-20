@@ -34,9 +34,9 @@ public class SwaggerConfig {
 
         return new OpenAPI()
                 .info(new Info()
-                        .title("Smart URL Management System API")
+                        .title("LynkForge API")
                         .description("""
-                                A URL shortening and management platform built as a college internship project.
+                                A modern URL shortening and management platform built as a college internship project.
 
                                 ## Features
                                 - URL Shortening with Base62 encoding

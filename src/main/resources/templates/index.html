@@ -10,15 +10,12 @@
 <div class="container">
     <div th:replace="~{fragments :: alerts}"></div>
 
-    <!-- Guest section (shown when NOT logged in) -->
     <div id="guest-section">
-        <div class="card text-center" style="padding: 3rem 1.5rem;">
-            <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">🔗 Smart URL Manager</h1>
-            <p style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 2rem;">
-                Create, manage, and track shortened URLs with powerful analytics.
-            </p>
+        <div class="hero-section">
+            <h1>Shorten. Track. Own Your Links.</h1>
+            <p><strong>LynkForge</strong> is a smart URL management platform that turns long, messy links into short, clean, trackable ones. You can password-protect them, set them to auto-expire, and see exactly who clicked them &mdash; all from one dashboard.</p>
             <div>
-                <a href="/register" class="btn btn-primary" style="margin-right: 0.5rem;">Get Started</a>
+                <a href="/register" class="btn btn-primary">Get Started</a>
                 <a href="/login" class="btn btn-outline">Login</a>
             </div>
         </div>
@@ -39,25 +36,58 @@
         </div>
 
         <div class="card">
-            <h2>Features</h2>
-            <table>
-                <tr><td>🚀</td><td><strong>URL Shortening</strong></td><td>Convert long URLs into short, shareable links using Base62 encoding</td></tr>
-                <tr><td>✏️</td><td><strong>Custom Aliases</strong></td><td>Create your own memorable short URLs</td></tr>
-                <tr><td>🔒</td><td><strong>Password Protection</strong></td><td>Secure sensitive links behind a password</td></tr>
-                <tr><td>⏰</td><td><strong>Link Expiration</strong></td><td>Set expiry dates for time-sensitive links</td></tr>
-                <tr><td>📊</td><td><strong>Click Analytics</strong></td><td>Track clicks, referrers, and user agents per URL</td></tr>
-                <tr><td>🛡️</td><td><strong>Admin Controls</strong></td><td>Monitor platform activity and manage users</td></tr>
-            </table>
+            <h2>Everything you need</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="icon">🚀</div>
+                    <div class="content">
+                        <h3>URL Shortening</h3>
+                        <p>Convert long URLs into short, shareable links using secure Base62 encoding.</p>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔒</div>
+                    <div class="content">
+                        <h3>Password Protection</h3>
+                        <p>Secure sensitive links behind a BCrypt-hashed password. Only the right people get in.</p>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">⏰</div>
+                    <div class="content">
+                        <h3>Link Expiration</h3>
+                        <p>Set expiry dates for time-sensitive links. Auto-expire after 1 hour, 24 hours, or any period.</p>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📊</div>
+                    <div class="content">
+                        <h3>Click Analytics</h3>
+                        <p>Track total clicks, daily/weekly/monthly stats, referrers, and user agents per URL.</p>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🛡️</div>
+                    <div class="content">
+                        <h3>Admin Controls</h3>
+                        <p>Monitor platform activity, manage users, and maintain your URL ecosystem.</p>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">⚡</div>
+                    <div class="content">
+                        <h3>Blazing Fast</h3>
+                        <p>Built on Spring Boot 3 with JWT auth, rate limiting, and in-memory caching for speed.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Logged-in section (shown when authenticated) -->
     <div id="user-section" style="display: none;">
-        <div class="card text-center" style="padding: 3rem 1.5rem;">
-            <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">🔗 Smart URL Manager</h1>
-            <p style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 2rem;">
-                You are logged in. Head to your dashboard to manage your URLs.
-            </p>
+        <div class="hero-section">
+            <h1>Welcome back</h1>
+            <p>You are logged in. Head to your dashboard to manage your URLs and view analytics.</p>
             <a href="/dashboard" class="btn btn-primary">Go to Dashboard</a>
         </div>
 
